@@ -1,0 +1,17 @@
+
+all: pr1a.exe pr1b.exe pr1c.exe
+
+pr1a.exe: pr1a.obj 
+	tlink /v pr1a 
+pr1a.obj: pr1a.asm 
+	tasm /zi pr1a.asm
+	
+pr1b.exe: pr1b.obj 
+	tlink /v pr1b 
+pr1b.obj: pr1b.asm 
+	tasm /zi pr1b.asm
+	
+pr1c.exe: pr1c.obj 
+	tlink /v pr1c 
+pr1c.obj: pr1c.asm 
+	tasm /zi pr1c.asm

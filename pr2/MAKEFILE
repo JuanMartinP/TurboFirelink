@@ -1,0 +1,7 @@
+
+all: pr2.exe
+
+pr2.exe: pr2.obj 
+	tlink /v pr2 
+pr2.obj: pr2.asm 
+	tasm /zi pr2.asm
