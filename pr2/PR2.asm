@@ -175,17 +175,15 @@ INICIO PROC
 	
 	MOV RESULTADO, CL
 	
-	; tenemos el determinante en CL, en este caso es 12	
-	;Vamos a dividirlo entre 10 para coger cada cifra y pasarla a ascii
-
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;RELLENA LA MATRIZ CON CARECTERES ASCII;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;RELLENA LA MATRIZ CON CARECTERES ASCII;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
 	MOV CX, 3
+	MOV DI, 0
 	MOV SI, 9
-	;BUCLE1:
-		MOV BH, MATRIZINI[0]
-		INC DH
+	BUCLE1:
+		MOV BH, MATRIZINI[DI]
 		CALL asciiconv
 		MOV AH, RETORNO[0]
 		MOV MATRIZ1[SI], AH
@@ -193,71 +191,37 @@ INICIO PROC
 		MOV AH, RETORNO[1]
 		MOV MATRIZ1[SI], AH
 		ADD SI, 3
-	;LOOP BUCLE1
-		MOV BH, MATRIZINI[1]
-		INC DH
+		INC DI
+	LOOP BUCLE1
+	
+	MOV CX, 3
+	MOV SI, 7
+	BUCLE2:
+		MOV BH, MATRIZINI[DI]
 		CALL asciiconv
 		MOV AH, RETORNO[0]
-		MOV MATRIZ1[SI], AH
+		MOV MATRIZ2[SI], AH
 		INC SI
 		MOV AH, RETORNO[1]
-		MOV MATRIZ1[SI], AH
+		MOV MATRIZ2[SI], AH
 		ADD SI, 3
+		INC DI
+	LOOP BUCLE2
+	
+	ADD SI, 5
 		
-		MOV BH, MATRIZINI[2]
-		INC DH
-		CALL asciiconv
-		MOV AH, RETORNO[0]
-		MOV MATRIZ1[SI], AH
-		INC SI
-		MOV AH, RETORNO[1]
-		MOV MATRIZ1[SI], AH
-		ADD SI, 3
-		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-		MOV SI, 7
-		MOV BH, MATRIZINI[3]
-		INC DH
-		CALL asciiconv
-		MOV AH, RETORNO[0]
-		MOV MATRIZ2[SI], AH
-		INC SI
-		MOV AH, RETORNO[1]
-		MOV MATRIZ2[SI], AH
-		ADD SI, 3
-		
-		MOV BH, MATRIZINI[4]
-		INC DH
-		CALL asciiconv
-		MOV AH, RETORNO[0]
-		MOV MATRIZ2[SI], AH
-		INC SI
-		MOV AH, RETORNO[1]
-		MOV MATRIZ2[SI], AH
-		ADD SI, 3
-		
-		MOV BH, MATRIZINI[5]
-		INC DH
-		CALL asciiconv
-		MOV AH, RETORNO[0]
-		MOV MATRIZ2[SI], AH
-		INC SI
-		MOV AH, RETORNO[1]
-		MOV MATRIZ2[SI], AH
-		ADD SI, 5
-		
-		MOV BH, RESULTADO
-		INC DH
-		CALL asciiconv
-		MOV AH, RETORNO[0]
-		MOV MATRIZ2[SI], AH
-		INC SI
-		MOV AH, RETORNO[1]
-		MOV MATRIZ2[SI], AH
-		ADD SI, 3
-		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-		MOV SI, 7
-		MOV BH, MATRIZINI[6]
-		INC DH
+	MOV BH, RESULTADO
+	CALL asciiconv
+	MOV AH, RETORNO[0]
+	MOV MATRIZ2[SI], AH
+	INC SI
+	MOV AH, RETORNO[1]
+	MOV MATRIZ2[SI], AH
+	
+	MOV CX, 3
+	MOV SI, 7
+	BUCLE3:
+		MOV BH, MATRIZINI[DI]
 		CALL asciiconv
 		MOV AH, RETORNO[0]
 		MOV MATRIZ3[SI], AH
@@ -265,26 +229,11 @@ INICIO PROC
 		MOV AH, RETORNO[1]
 		MOV MATRIZ3[SI], AH
 		ADD SI, 3
-		MOV BH, MATRIZINI[7]
-		INC DH
-		CALL asciiconv
-		MOV AH, RETORNO[0]
-		MOV MATRIZ3[SI], AH
-		INC SI
-		MOV AH, RETORNO[1]
-		MOV MATRIZ3[SI], AH
-		ADD SI, 3
-		
-		MOV BH, MATRIZINI[8]
-		INC DH
-		CALL asciiconv
-		MOV AH, RETORNO[0]
-		MOV MATRIZ3[SI], AH
-		INC SI
-		MOV AH, RETORNO[1]
-		MOV MATRIZ3[SI], AH
-		ADD SI, 3
-		
+		INC DI
+	LOOP BUCLE3
+
+	;;;;;;
+		;;;;;;;
 		
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IMPRIMIMOS LA MATRIZ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
