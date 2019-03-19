@@ -6,11 +6,20 @@
 ; DEFINICION DEL SEGMENTO DE DATOS 
 DATOS SEGMENT 
 ;-- rellenar con los datos solicitados
-	MATRIZ9 DB 1, 2, 3, 4, 5, 2, 2, 4, 2									;reservamos memoria para 9 valores de 1 byte inicializados
-	RESULTADO DB 5 DUP(0) 													;reservamos memoria para el resultado de 16 bytes
-	MATRIZGR DB "     |", 0,0,0, '|', 0,0,0, '|', 0,0,0, '|', 10, 13, '$'
-			 DB "|A|= |", 0,0,0, '|', 0,0,0, '|', 0,0,0, "| =",0,0,0, 10, 13, '$'
-			 DB "     |", 0,0,0, '|', 0,0,0, '|', 0,0,0, '|', 10, 13, '$'		 
+	MATRIZINI DB 1, 2, 3, 4, 5, 2, 2, 4, 2									;reservamos memoria para 9 valores de 1 byte inicializados
+	
+	RETORNO DB 2 DUP(0) 													;reservamos memoria para el RETORNO de 16 bytes
+	
+	RESULTADO DB 0
+	
+	OPCION DW ?
+	
+	MATRIZ1 DB "       |", 0,0,0, '|', 0,0,0, '|', 0,0,0, '|', 10, 13
+	MATRIZ2 DB "|A|= |", 0,0,0, '|', 0,0,0, '|', 0,0,0, "| =",0,0,0, 10, 13
+	MATRIZ3 DB "     |", 0,0,0, '|', 0,0,0, '|', 0,0,0, '|', 10, 13, '$'
+	
+	MENU DB "Elige una opcion para calcular el determinante:", 10, 13
+		 DB "1) Calcular el determinante con valores introducidos por defecto.",10, 10, 13, '$'
 	
 DATOS ENDS 
 ;************************************************************************** 
@@ -38,27 +47,32 @@ INICIO PROC
 	MOV ES, AX 
 	MOV SP, 64 ; CARGA EL PUNTERO DE PILA CON EL VALOR MAS ALTO 
 	; FIN DE LAS INICIALIZACIONES 
-	; COMIENZO DEL PROGRAMA 
-	; -- rellenar con las instrucciones solicitadas
-
-	;MOV AH, 2   			para más adelante, imprime
-	;MOV DL, MATRIZ9[0]
-	;int 21H
+	; COMIENZO DEL PROGRAMA
 	
-	;DETERMINANTE
+	MOV DX, OFFSET MENU
+	MOV AH, 9
+	INT 21h
+	
+	MOV AH,0AH    ;Función captura de teclado 
+	MOV DX,OFFSET OPCION     ;Area de memoria reservada = etiqueta NOMBRE 
+	MOV OPCION[0],2    ;Lectura de caracteres máxima=60 
+	INT 21H 
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CALCULA EL DETERMINANTE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	;multiplicar primer triplete de la matriz: matriz[0] * matriz[4] * matriz[8] (BX = nfila*3)(SI = ncol)
 	MOV BX, 3*0
 	MOV SI, 0
-	MOV AL, MATRIZ9[BX][SI]
+	MOV AL, MATRIZINI[BX][SI]
 	MOV BX, 3*1
 	MOV SI, 1
-	MOV CL, MATRIZ9[BX][SI]
+	MOV CL, MATRIZINI[BX][SI]
 	IMUL CL
 	
 	MOV BX, 3*2
 	MOV SI, 2
-	MOV CL, MATRIZ9[BX][SI]
+	MOV CL, MATRIZINI[BX][SI]
 	IMUL CL
 	
 	MOV CL, AL
@@ -66,15 +80,15 @@ INICIO PROC
 	;multiplicar segundo triplete de la matriz: matriz[3] * matriz[7] * matriz[2] ---> Comprobado
 	MOV BX, 3*1
 	MOV SI, 0
-	MOV AL, MATRIZ9[BX][SI]
+	MOV AL, MATRIZINI[BX][SI]
 	MOV BX, 3*2
 	MOV SI, 1
-	MOV DL, MATRIZ9[BX][SI]
+	MOV DL, MATRIZINI[BX][SI]
 	IMUL DL
 	
 	MOV BX, 3*0
 	MOV SI, 2
-	MOV DL, MATRIZ9[BX][SI]
+	MOV DL, MATRIZINI[BX][SI]
 	IMUL DL
 	
 	MOV DL, AL
@@ -85,15 +99,15 @@ INICIO PROC
 	;multiplicar tercer triplete de la matriz: matriz[1] * matriz[5] * matriz[6] ---> A Juan no le apetecia comprobarlo
 	MOV BX, 3*0
 	MOV SI, 1
-	MOV AL, MATRIZ9[BX][SI]
+	MOV AL, MATRIZINI[BX][SI]
 	MOV BX, 3*1
 	MOV SI, 2
-	MOV DL, MATRIZ9[BX][SI]
+	MOV DL, MATRIZINI[BX][SI]
 	IMUL DL
 	
 	MOV BX, 3*2
 	MOV SI, 0
-	MOV DL, MATRIZ9[BX][SI]
+	MOV DL, MATRIZINI[BX][SI]
 	IMUL DL
 	
 	MOV DL, AL
@@ -108,15 +122,15 @@ INICIO PROC
 	;multiplicar primer triplete de la matriz: matriz[0] * matriz[4] * matriz[8] ---> Comprobado
 	MOV BX, 3*0
 	MOV SI, 2
-	MOV AL, MATRIZ9[BX][SI]
+	MOV AL, MATRIZINI[BX][SI]
 	MOV BX, 3*1
 	MOV SI, 1
-	MOV BL, MATRIZ9[BX][SI]
+	MOV BL, MATRIZINI[BX][SI]
 	IMUL BL
 	
 	MOV BX, 3*2
 	MOV SI, 0
-	MOV BL, MATRIZ9[BX][SI]
+	MOV BL, MATRIZINI[BX][SI]
 	IMUL BL
 	
 	MOV CH, AL
@@ -124,15 +138,15 @@ INICIO PROC
 	;multiplicar segundo triplete de la matriz: matriz[3] * matriz[7] * matriz[2] ---> Comprobado
 	MOV BX, 3*1
 	MOV SI, 0
-	MOV AL, MATRIZ9[BX][SI]
+	MOV AL, MATRIZINI[BX][SI]
 	MOV BX, 3*0
 	MOV SI, 1
-	MOV DL, MATRIZ9[BX][SI]
+	MOV DL, MATRIZINI[BX][SI]
 	IMUL DL
 	
 	MOV BX, 3*2
 	MOV SI, 2
-	MOV DL, MATRIZ9[BX][SI]
+	MOV DL, MATRIZINI[BX][SI]
 	IMUL DL
 	
 	MOV DL, AL
@@ -143,15 +157,15 @@ INICIO PROC
 	;multiplicar segundo triplete de la matriz: matriz[1] * matriz[5] * matriz[6] ---> A Juan no le apetecia comprobarlo
 	MOV BX, 3*2
 	MOV SI, 1
-	MOV AL, MATRIZ9[BX][SI]
+	MOV AL, MATRIZINI[BX][SI]
 	MOV BX, 3*1
 	MOV SI, 2
-	MOV DL, MATRIZ9[BX][SI]
+	MOV DL, MATRIZINI[BX][SI]
 	IMUL DL
 	
 	MOV BX, 3*0
 	MOV SI, 0
-	MOV DL, MATRIZ9[BX][SI]
+	MOV DL, MATRIZINI[BX][SI]
 	IMUL DL
 	
 	MOV DL, AL
@@ -159,51 +173,148 @@ INICIO PROC
 	;Para comprobar hasta aqui: MOV AL, CL y salida
 	SUB CL, CH
 	
-	; tenemos el determinante en CL y lo vamos a pasar a ascii para imprimir el valor correcto
+	MOV RESULTADO, CL
 	
-	
-	;MOV DX, OFFSET RESULTADO
-	;MOV AH, 9
-	;INT 21h
+	; tenemos el determinante en CL, en este caso es 12	
+	;Vamos a dividirlo entre 10 para coger cada cifra y pasarla a ascii
 
-	;MOV AH, 2 					;Impresion de 1 caracter
-	;MOV DL, AL
-	;int 21H
 	
-	;tenemos un 12 de resultado
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;RELLENA LA MATRIZ CON CARECTERES ASCII;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
+	MOV CX, 3
+	MOV SI, 9
+	;BUCLE1:
+		MOV BH, MATRIZINI[0]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ1[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ1[SI], AH
+		ADD SI, 3
+	;LOOP BUCLE1
+		MOV BH, MATRIZINI[1]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ1[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ1[SI], AH
+		ADD SI, 3
+		
+		MOV BH, MATRIZINI[2]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ1[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ1[SI], AH
+		ADD SI, 3
+		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		MOV SI, 7
+		MOV BH, MATRIZINI[3]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ2[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ2[SI], AH
+		ADD SI, 3
+		
+		MOV BH, MATRIZINI[4]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ2[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ2[SI], AH
+		ADD SI, 3
+		
+		MOV BH, MATRIZINI[5]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ2[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ2[SI], AH
+		ADD SI, 5
+		
+		MOV BH, RESULTADO
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ2[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ2[SI], AH
+		ADD SI, 3
+		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		MOV SI, 7
+		MOV BH, MATRIZINI[6]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ3[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ3[SI], AH
+		ADD SI, 3
+		MOV BH, MATRIZINI[7]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ3[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ3[SI], AH
+		ADD SI, 3
+		
+		MOV BH, MATRIZINI[8]
+		INC DH
+		CALL asciiconv
+		MOV AH, RETORNO[0]
+		MOV MATRIZ3[SI], AH
+		INC SI
+		MOV AH, RETORNO[1]
+		MOV MATRIZ3[SI], AH
+		ADD SI, 3
+		
+		
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IMPRIMIMOS LA MATRIZ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	MOV DX, OFFSET MATRIZ1
+	MOV AH, 9
+	INT 21h
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	JMP fin
 	
-	MOV AL, CL
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;FUNCION PARA CONVERTIR A ASCII;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+asciiconv:
+	MOV AL, BH
 	MOV AH, 00
 	MOV BL, 10
 	DIV BL 			;el resto esta en AH
 	ADD AH, 48
-	MOV RESULTADO[1], AH
+	MOV RETORNO[1], AH
 	MOV AH, 00
 	DIV BL 			;el resto esta en AH
 	ADD AH, 48
-	MOV RESULTADO[0], AH
+	MOV RETORNO[0], AH
+	ret
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
-	MOV AL, RESULTADO[0]
-	MOV AH, 2 			
-	MOV DL, AL
-	int 21H
-	
-	MOV AL, RESULTADO[1]
-	MOV AH, 2 			
-	MOV DL, AL
-	int 21H
-	
-	;MOV CH, 13
-	;MOV RESULTADO[2], CH
-	;MOV CH, 10
-	;MOV RESULTADO[3], CH
-	;MOV CH, '$'
-	;MOV RESULTADO[4], CH
+fin:
 
-	
-	
-	
-	
 ; FIN DEL PROGRAMA 
 	MOV AX, 4C00H 
 	INT 21H 
