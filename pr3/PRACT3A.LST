@@ -1,0 +1,256 @@
+Turbo Assembler	 Version 2.0	    04/01/19 24:37:28	    Page 1
+pract3a.ASM
+
+
+
+      1				     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      2				     ;			     SBM 2016. Practica	3 - Apartado a				     ;
+      3				     ;	 Pareja	7 - Miguel Manzano y Juan Martin				     ;
+      4				     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      5
+      6	0000			     _TEXT SEGMENT BYTE	PUBLIC 'CODE'		     ;;	Definición del	segmento de código
+      7				     ASSUME CS:_TEXT
+      8
+      9
+     10					     PUBLIC _computeControlDigit
+     11	0000				     _computeControlDigit PROC FAR
+     12
+     13	0000  55				     PUSH BP						     ;guardar el valor de BP+
+     14				     para el final de la funcion
+     15	0001  8B EC				     MOV BP, SP						     ;Movemos sp a la parte +
+     16				     final de la pila
+     17	0003  53 51 52 56 57 1E			     PUSH BX CX	DX SI DI DS
+     18
+     19	0009  C4 5E 06				     LES BX, [BP+6]				     ;offset de	la cadena de	    +
+     20				     caracteres	en BX y	segmento en ES
+     21
+     22	000C  BE 0000				     MOV SI, 0						     ;SI sera nuestro	    +
+     23				     contador para ir recorriendo el bucle de impares
+     24	000F  B8 0000				     MOV AX, 0						     ;AX sera la variable   +
+     25				     donde iremos guardando lo que leamos en cada posicion del bucle
+     26	0012  BA 0000				     MOV DX, 0						     ;DX guardaremos la	suma+
+     27				     de	los AX
+     28
+     29	0015					     BUCLE1:						     ;Etiqueta bucle1
+     30	0015  26: 8A 00				     MOV AL, ES:[BX][SI]
+     31	0018  2C 30				     SUB AL, 48						     ;Conversion de ASCII de+
+     32				     decimal
+     33	001A  03 D0				     ADD DX, AX
+     34	001C  83 C6 02				     ADD SI, 2						     ;Avanzamos	posiciones  +
+     35				     en	el bucle
+     36	001F  83 FE 0E				     CMP SI, 14						     ;Realizamos la	    +
+     37				     comparacion para comprobar	que no llegamos	al final de la cadena de impares
+     38	0022  75 F1				     JNE BUCLE1
+     39
+     40	0024  52				     PUSH DX						     ;guardamos	en la pila  +
+     41				     el	resultado de los impares
+     42
+     43	0025  BE 0001				     MOV SI, 1						     ;Ahora SI ira	    +
+     44				     inicializado a 1 para asi ir recorriendo el bucle de pares
+     45	0028  B8 0000				     MOV AX, 0
+     46	002B  BA 0000				     MOV DX, 0
+     47
+     48	002E					     BUCLE2:
+     49	002E  26: 8A 00				     MOV AL, ES:[BX][SI]
+     50	0031  2C 30				     SUB AL, 48
+     51	0033  B4 03				     MOV AH, 3
+     52	0035  F6 E4				     MUL AH						     ;multiplicamos por	3 y +
+     53				     guardamos el resultado en AL
+     54	0037  03 D0				     ADD DX, AX
+     55	0039  83 C6 02				     ADD SI, 2
+     56	003C  83 FE 0D				     CMP SI, 13						     ;ahora comparamos si   +
+     57				     llegamos al final de la cadena de pares
+Turbo Assembler	 Version 2.0	    04/01/19 24:37:28	    Page 2
+pract3a.ASM
+
+
+
+     58	003F  75 ED				     JNE BUCLE2
+     59
+     60
+     61	0041  58				     POP AX						     ;Guardo en	AX el	    +
+     62				     resultado del bucle1 que habiamos metido em la pila
+     63	0042  03 D0				     ADD DX, AX						     ;DX ahora contendra la +
+     64				     suma del resultado	de ambos bucles
+     65
+     66
+     67
+     68					     ;;CALCULO DE LA DECENA MAS	PROXIMA: 10 - (RESULTADO OBTENIDO % 10)
+     69
+     70
+     71
+     72	0044  8B C2				     MOV AX, DX						     ;muevo a AX el	    +
+     73				     resultado anterior	para poder realizar divisiones con ese valor
+     74	0046  B7 0A				     MOV BH, 10
+     75	0048  F6 F7				     DIV BH						     ;divido AX	entre BH y  +
+     76				     guardo el resultado en AX,	de forma que en	AL se guarda el	cociente y en AH el resto
+     77	004A  8A EC				     MOV CH, AH						     ;guardo el	resto	    +
+     78				     obtenido anteriormente en CH
+     79
+     80	004C  B8 000A				     MOV AX, 10						     ;Por ultimo muevo a AX +
+     81				     un	10 para	asi restarlo con el resto obtenido anteriormente
+     82	004F  2A C5				     SUB AL, CH						     ;Realizamos la resta y +
+     83				     dejamos el	resultado guardado en AX
+     84
+     85
+     86	0051  1F 5F 5E 5A 59 5B			     POP DS DI SI DX CX	BX
+     87	0057  5D				     POP BP
+     88	0058  CB				     RET							     ;;	Retorno	de  +
+     89				     la	función que nos ha llamado, devolviendo el digito de control calculado	en AX
+     90	0059				     _computeControlDigit ENDP
+     91
+     92
+     93
+     94
+     95					     ;/*********************/
+     96					     ;/***decodeBarCode*****/
+     97					     ;/*********************/
+     98
+     99					     PUBLIC _decodeBarCode
+    100	0059				     _decodeBarCode PROC FAR
+    101
+    102	0059  55				     PUSH BP							     ;Salvaguardar  +
+    103				     BP	en la pila para	poder modificarle sin modificar	su valor
+    104	005A  8B EC				     MOV BP, SP							     ;Igualar BP el +
+    105				     contenido de SP
+    106	005C  C4 5E 06				     LES BX, [BP+6]					 ;Offset de la cadena de    +
+    107				     caracteres	original en BX y segmento en ES
+    108
+    109
+    110	005F  B9 0002				     MOV CX, 2							     ;Tres digitos  +
+    111				     de	pais
+    112	0062  B8 0064				     MOV AX, 100
+    113	0065  BE 0000				     MOV SI, 0
+    114
+Turbo Assembler	 Version 2.0	    04/01/19 24:37:28	    Page 3
+pract3a.ASM
+
+
+
+    115	0068				     CODPAIS:
+    116	0068  26: 8A 10				     MOV DL, ES:[BX][SI]				     ;En DX tenemos el	    +
+    117				     primer caracter ASCII de pais
+    118	006B  80 EA 30				     SUB DL, 48							     ;Convertimos a +
+    119				     decimal
+    120	006E  F7 E2				     MUL DX							     ;Lo	    +
+    121				     multiplicamos por AX para ponerle los 0 apropiados
+    122	0070  03 FA				     ADD DI, DX							     ;Lo guardamos  +
+    123				     en	DI
+    124
+    125	0072  46				     INC SI							     ;Control de    +
+    126				     variables de bucle
+    127	0073  D1 F8				     SAR AX, 1
+    128	0075  49				     DEC CX
+    129	0076  E2 F0			     LOOP CODPAIS
+    130
+    131	0078  C4 5E 0A				     LES BX, [BP+10]
+    132	007B  26: 89 3F				     MOV WORD PTR ES:[BX], DI
+    133
+    134
+    135
+    136	007E  C4 5E 06				     LES BX, [BP+6]
+    137
+    138	0081  B9 0003				     MOV CX, 3							     ;Cuatro digitos+
+    139				     de	pais
+    140	0084  B8 03E8				     MOV AX, 1000
+    141
+    142	0087				     CODEMPRESA:
+    143	0087  26: 8A 10				     MOV DL, ES:[BX][SI]				     ;En DX tenemos el	    +
+    144				     primer caracter ASCII de empresa
+    145	008A  80 EA 30				     SUB DL, 48							     ;Convertimos a +
+    146				     decimal
+    147	008D  F7 E2				     MUL DX							     ;Lo	    +
+    148				     multiplicamos por AX para ponerle los 0 apropiados
+    149	008F  03 FA				     ADD DI, DX							     ;Lo guardamos  +
+    150				     en	DI
+    151
+    152	0091  46				     INC SI							     ;Control de    +
+    153				     variables de bucle
+    154	0092  D1 F8				     SAR AX, 1
+    155	0094  49				     DEC CX
+    156	0095  E2 F0			     LOOP CODEMPRESA
+    157
+    158	0097  C4 5E 0E				     LES BX, [BP+14]
+    159	009A  26: 89 3F				     MOV WORD PTR ES:[BX], DI
+    160
+    161
+    162
+    163	009D  C4 5E 06				     LES BX, [BP+6]
+    164
+    165	00A0  B9 0003				     MOV CX, 3							     ;Cuatro digitos+
+    166				     de	producto
+    167	00A3  B8 03E8				     MOV AX, 1000
+    168
+    169	00A6				     CODPRODUCTO:
+    170	00A6  26: 8A 10				     MOV DL, ES:[BX][SI]				     ;En DX tenemos el	    +
+    171				     primer caracter ASCII de producto
+Turbo Assembler	 Version 2.0	    04/01/19 24:37:28	    Page 4
+pract3a.ASM
+
+
+
+    172	00A9  80 EA 30				     SUB DL, 48							     ;Convertimos a +
+    173				     decimal
+    174	00AC  F7 E2				     MUL DX							     ;Lo	    +
+    175				     multiplicamos por AX para ponerle los 0 apropiados
+    176	00AE  03 FA				     ADD DI, DX							     ;Lo guardamos  +
+    177				     en	DI
+    178
+    179	00B0  46				     INC SI							     ;Control de    +
+    180				     variables de bucle
+    181	00B1  D1 F8				     SAR AX, 1
+    182	00B3  49				     DEC CX
+    183	00B4  E2 F0			     LOOP CODPRODUCTO
+    184
+    185	00B6  C4 5E 0E				     LES BX, [BP+14]
+    186	00B9  26: 89 3F				     MOV WORD PTR ES:[BX], DI
+    187
+    188	00BC  C4 5E 06				     LES BX, [BP+6]
+    189	00BF  BA 0000				     MOV DX, 0
+    190	00C2  26: 8A 10				     MOV DL, ES:[BX][SI]				     ;En DX tenemos el	    +
+    191				     último caracter ASCII de producto
+    192	00C5  8B FA				     MOV DI , DX
+    193	00C7  BE 0004				     MOV SI, 4
+    194	00CA  C4 5E 0E				     LES BX, [BP+14]
+    195	00CD  26: 89 38				     MOV WORD PTR ES:[BX][SI], DI
+    196
+    197	00D0  CB				     RET
+    198	00D1				     _decodeBarCode ENDP
+    199
+    200
+    201
+    202
+    203
+    204
+    205				     ; FIN DEL SEGMENTO	DE CODIGO
+    206	00D1			     _TEXT ENDS
+    207				     ; FIN DEL PROGRAMA	INDICANDO DONDE	COMIENZA LA EJECUCION
+    208				     END
+Turbo Assembler	 Version 2.0	    04/01/19 24:37:28	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??date				  Text	 "04/01/19"
+??filename			  Text	 "pract3a "
+??time				  Text	 "24:37:28"
+??version			  Number 0200
+@Cpu				  Text	 0101H
+@FileName			  Text	 pract3a
+@WordSize			  Text	 2
+@curseg				  Text	 _TEXT
+BUCLE1				  Near	 _TEXT:0015
+BUCLE2				  Near	 _TEXT:002E
+CODEMPRESA			  Near	 _TEXT:0087
+CODPAIS				  Near	 _TEXT:0068
+CODPRODUCTO			  Near	 _TEXT:00A6
+_computeControlDigit		  Far	 _TEXT:0000
+_decodeBarCode			  Far	 _TEXT:0059
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+_TEXT				  16  00D1 Byte	  Public  CODE
+
