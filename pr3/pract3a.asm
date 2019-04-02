@@ -6,13 +6,13 @@
 _TEXT SEGMENT BYTE PUBLIC 'CODE' 		;; Definición del segmento de código
 ASSUME CS:_TEXT
 			
-
+	
 	PUBLIC _computeControlDigit					
 	_computeControlDigit PROC FAR
 	
 		PUSH BP							;guardar el valor de BP para el final de la funcion
 		MOV BP, SP						;Movemos sp a la parte final de la pila
-		PUSH BX CX DX SI DI DS
+		PUSH BX CX DX SI DI DS ES
 	
 		LES BX, [BP+6]					;offset de la cadena de caracteres en BX y segmento en ES
 	
@@ -25,7 +25,7 @@ ASSUME CS:_TEXT
 		SUB AL, 48						;Conversion de ASCII de decimal
 		ADD DX, AX
 		ADD SI, 2						;Avanzamos posiciones en el bucle
-		CMP SI, 14						;Realizamos la comparacion para comprobar que no llegamos al final de la cadena de impares
+		CMP SI, 12						;Realizamos la comparacion para comprobar que no llegamos al final de la cadena de impares
 		JNE BUCLE1
 	
 		PUSH DX							;guardamos en la pila el resultado de los impares
@@ -63,98 +63,133 @@ ASSUME CS:_TEXT
 		SUB AL, CH						;Realizamos la resta y dejamos el resultado guardado en AX
 	
 	
-		POP DS DI SI DX CX BX
+		POP ES DS DI SI DX CX BX
 		POP BP
 		RET								;; Retorno de la función que nos ha llamado, devolviendo el digito de control calculado en AX
 	_computeControlDigit ENDP							
 
-
-
 	
-	;/*********************/
-	;/***decodeBarCode*****/
-	;/*********************/
+	
 	
 	PUBLIC _decodeBarCode						
 	_decodeBarCode PROC FAR
 	
 		PUSH BP 							;Salvaguardar BP en la pila para poder modificarle sin modificar su valor
 		MOV BP, SP							;Igualar BP el contenido de SP
+		PUSH BX CX DX SI DI DS ES AX
 		LES BX, [BP+6]					    ;Offset de la cadena de caracteres original en BX y segmento en ES
 		
 	
-		MOV CX, 2							;Tres digitos de pais
+		MOV CX, 10							;Tres digitos de pais
 		MOV AX, 100
-		MOV SI, 0							
-		
+		XOR SI, SI							
+		XOR DI, DI
 	CODPAIS:
+		XOR DX, DX
 		MOV DL, ES:[BX][SI]					;En DX tenemos el primer caracter ASCII de pais
 		SUB DL, 48							;Convertimos a decimal
+		
+		
+		PUSH AX
 		MUL DX 								;Lo multiplicamos por AX para ponerle los 0 apropiados
+		MOV DX, AX
 		ADD DI, DX							;Lo guardamos en DI
 	
-		INC SI								;Control de variables de bucle
-		SAR AX, 1
-		DEC CX
-	LOOP CODPAIS
+		MOV DX, 0
+		INC SI
+		POP AX								;Control de variables de bucle
+		DIV CX
+		CMP AX, 0
+	JNE CODPAIS
 	
 		LES BX, [BP+10]
 		MOV WORD PTR ES:[BX], DI
 	
 	
-	
+		MOV SI, 3
 		LES BX, [BP+6]
-	
-		MOV CX, 3							;Cuatro digitos de pais
-		MOV AX, 1000							
 		
+		MOV CX, 10							;Cuatro digitos de pais
+		MOV AX, 1000							
+		XOR DI, DI
 	CODEMPRESA:
-		MOV DL, ES:[BX][SI]					;En DX tenemos el primer caracter ASCII de empresa
+		XOR DX, DX
+		MOV DL, ES:[BX][SI]					;En DX tenemos el primer caracter ASCII de pais
 		SUB DL, 48							;Convertimos a decimal
-		MUL DX 								;Lo multiplicamos por AX para ponerle los 0 apropiados
-		ADD DI, DX							;Lo guardamos en DI
-	
-		INC SI								;Control de variables de bucle
-		SAR AX, 1
-		DEC CX
-	LOOP CODEMPRESA
-	
-		LES BX, [BP+14]
-		MOV WORD PTR ES:[BX], DI
-	
-	
-	
-		LES BX, [BP+6]
-	
-		MOV CX, 3							;Cuatro digitos de producto
-		MOV AX, 1000							
 		
-	CODPRODUCTO:
-		MOV DL, ES:[BX][SI]					;En DX tenemos el primer caracter ASCII de producto
-		SUB DL, 48							;Convertimos a decimal
+		
+		PUSH AX
 		MUL DX 								;Lo multiplicamos por AX para ponerle los 0 apropiados
+		MOV DX, AX
 		ADD DI, DX							;Lo guardamos en DI
 	
-		INC SI								;Control de variables de bucle
-		SAR AX, 1
-		DEC CX
-	LOOP CODPRODUCTO
+		MOV DX, 0
+		INC SI
+		POP AX								;Control de variables de bucle
+		DIV CX
+		CMP AX, 0
+	JNE CODEMPRESA
 	
 		LES BX, [BP+14]
 		MOV WORD PTR ES:[BX], DI
-	
+
+		XOR DI,DI
+; PRODUCT
+				
+		XOR DX,DX
 		LES BX, [BP+6]
-		MOV DX, 0
-		MOV DL, ES:[BX][SI]					;En DX tenemos el último caracter ASCII de producto
-		MOV DI , DX
-		MOV SI, 4
-		LES BX, [BP+14]
-		MOV WORD PTR ES:[BX][SI], DI
+		MOV SI, 11
+		MOV CL, ES:[BX][SI]
+		MOV CH, CH
+		SUB CX, 48
+		
+		DEC SI
+		XOR AH,AH
+		MOV AL, ES:[BX][SI]
+		SUB AX, 48
+		MOV DI, 10
+		MUL DI
+		ADD CX, AX
+		
+		DEC SI
+		XOR AH,AH
+		MOV AL, ES:[BX][SI]
+		SUB AX, 48
+		MOV DI, 100
+		MUL DI
+		ADD CX, AX
+		
+		DEC SI
+		XOR AH,AH
+		MOV AL, ES:[BX][SI]
+		SUB AX, 48
+		MOV DI, 1000
+		MUL DI
+		ADD CX, AX
+		
+		DEC SI
+		XOR AH,AH
+		MOV AL, ES:[BX][SI]
+		SUB AX, 48
+		MOV DI, 10000
+		MUL DI
+		ADD CX, AX
+		
+		LES BX, [BP+18]
+		MOV WORD PTR ES:[BX], CX
+		MOV SI, 2
+		MOV WORD PTR ES:[BX][SI], DX
+		
+		; FIN DE PRODUCT
 	
+		MOV DI, 1
+		LES BX, [BP+22]
+		MOV WORD PTR ES:[BX], DI
+	
+		POP AX ES DS DI SI DX CX BX
+		POP BP
 		RET 
 	_decodeBarCode ENDP							
-
-
 
 
 
