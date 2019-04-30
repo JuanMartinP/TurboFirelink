@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 2.0	    04/28/19 23:22:28	    Page 1
+Turbo Assembler	 Version 2.0	    04/30/19 18:11:47	    Page 1
 p4a.asm
 
 
@@ -9,166 +9,227 @@ p4a.asm
       4				     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       5
       6	0000			     CODE SEGMENT	     ;;	Definición del	segmento de código
-      7				     ASSUME CS:CODE, DS: CODE, SS:CODE
+      7				     ASSUME CS:CODE
       8
       9				     ORG 100H
      10	0100			     INICIO:
      11
-     12	0100  34 35 36 37 38 39	41+	     POLIBIO DB	'4', '5', '6', '7', '8', '9', 'A', 'B','C','D','E','F','G','H','I','J','K', +
-     13	      42 43 44 45 46 47	48+  'L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '0', '1', '2', '3', '$'
-     14	      49 4A 4B 4C 4D 4E	4F+
-     15	      50 51 52 53 54 55	56+
-     16	      57 58 59 5A 30 31	32+
-     17	      33 24
-     18	0125  0C			     OFFSET_A DB 12					     ;2	* 6 + 0	 FILA *	MAXFILA	+ COL
-     19	0126  00			     OFFSET_C DB 0
-     20	0127  00			     RES DB 0
-     21	0128  00			     FIL DB 0
-     22	0129  00			     COL DB 0
-     23	012A  00			     RESFIL DB 0
-     24	012B  00			     RESCOL DB 0
-     25
-     26	012C  E9 008F			     JMP MAIN
-     27
-     28
-     29
-     30	012F				     RSI_57H PROC FAR				     ;ESTO SE VA A ENCARGAR DE CODIFICAR Y  +
-     31				     DECODIFICAR LA CADENA QUE LE PASA EL MAIN
-     32
-     33	012F  50 53 51 52 56 57	1E+		     PUSH AX BX	CX DX SI DI DS ES
-     34	      06
-     35
-     36	0137  80 FC 10				     CMP AH, 10H					     ;;	Para codificar
-     37	013A  74 08				     JE	CODIFICAR
-     38
-     39	013C  80 FC 11				     CMP AH, 11H					     ;;	Para decodificar
-     40	013F  74 2F				     JE	DECODIFICAR
-     41
-     42	0141  EB 72 90				     JMP FINAL
-     43
-     44	0144					     CODIFICAR:
+     12	0100  E9 0182			 JMP MAIN
+     13
+     14	0103  34 35 36 37 38 39	0A+	     POLIBIOTABLA DB '4', '5', '6', '7', '8', '9', 10, 'A', 'B', 'C', 'D', 'E',	'F', 10,    +
+     15	      41 42 43 44 45 46	0A+  'G', 'H', 'I', 'J', 'K', 'L', 10, 'M', 'N', 'O', 'P', 'Q',	'R', 10, 'S', 'T', 'U',	'V', 'W',   +
+     16	      47 48 49 4A 4B 4C	0A+  'X', 10, 'Y', 'Z',	'0', '1', '2', '3', 10,	10, '$'
+     17	      4D 4E 4F 50 51 52	0A+
+     18	      53 54 55 56 57 58	0A+
+     19	      59 5A 30 31 32 33	0A+
+     20	      0A 24
+     21	012F  34 35 36 37 38 39	41+	     DECOD DB '4', '5',	'6', '7', '8', '9', 'A', 'B', 'C', 'D',	'E', 'F', 'G', 'H', 'I',    +
+     22	      42 43 44 45 46 47	48+  'J', 'K', 'L', 'M', 'N', 'O', 'P',	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',	'Y', 'Z', '0', '1', +
+     23	      49 4A 4B 4C 4D 4E	4F+  '2', '3'
+     24	      50 51 52 53 54 55	56+
+     25	      57 58 59 5A 30 31	32+
+     26	      33
+     27	      =	0006			     OFFSET_A EQU 6					     ;1	* 6 + 0	 FILA *	MAXFILA	+ COL
+     28	      =	0020			     OFFSET_0 EQU 32					     ;5	* 6 + 2	 FILA *	MAXFILA	+ COL
+     29	0153  00			     OFFSET_C DB 0
+     30	0154  00			     RES DB 0
+     31	0155  00			     FIL DB 0
+     32	0156  00			     COL DB 0
+     33	0157  00			     RESFIL DB 0
+     34	0158  00			     RESCOL DB 0
+     35	0159  33 33 33 32 32 35	32+	     POLIBIO DB	"333225221122320202025253$"
+     36	      32 31 31 32 32 33	32+
+     37	      30 32 30 32 30 32	35+
+     38	      32 35 33 24
+     39
+     40	0172				     RSI_57H PROC FAR				     ;ESTO SE VA A ENCARGAR DE CODIFICAR Y  +
+     41				     DECODIFICAR LA CADENA QUE LE PASA EL MAIN
+     42
+     43	0172  50 53 51 52 56 57	1E+		     PUSH AX BX	CX DX SI DI DS ES
+     44	      06
      45
-     46	0144  BE 0000					     MOV SI, 0
-     47							     ;BUCLE:
-     48	0147  B3 43					     MOV BL , 'C'		;DS:[DX][SI]
-     49	0149  80 FB 41					     CMP BL, 'A'
-     50	014C  72 1B					     JB	NUMEROS
-     51	014E  80 FB 5A					     CMP BL, 'Z'
-     52	0151  77 16					     JA	NUMEROS
+     46	017A  8B F2				     MOV SI, DX
+     47
+     48	017C  B4 11				     MOV AH, 11H					     ;;	Por ahora sólo	    +
+     49				     codifica BIEN,
+     50	017E  80 FC 10				     CMP AH, 10H					     ;;	Para codificar
+     51	0181  74 08				     JE	CODIFICAR
+     52	0183					     RETCODIFICAR:
      53
-     54	0153  02 1E 0125r				     ADD BL, OFFSET_A
-     55	0157  88 1E 0127r				     MOV RES, BL
-     56	015B  80 2E 0127r 41				     SUB RES, 'A'
-     57	0160  8A 36 0127r				     MOV DH, RES
-Turbo Assembler	 Version 2.0	    04/28/19 23:22:28	    Page 2
+     54	0183  80 FC 11				     CMP AH, 11H					     ;;	Para decodificar
+     55	0186  74 63				     JE	DECODIFICAR
+     56	0188					     RETDECODIFICAR:
+     57
+Turbo Assembler	 Version 2.0	    04/30/19 18:11:47	    Page 2
 p4a.asm
 
 
 
-     58	0164  88 36 0126r				     MOV OFFSET_C, DH
-     59							     ;JMP PRINT
-     60							     ;CMP DS:[DX][SI], $
-     61							     ;JNE BUCLE
-     62
-     63
-     64
-     65
+     58	0188  E9 00D7				     JMP FINAL
+     59
+     60	018B					     CODIFICAR:
+     61
+     62	018B						     BUCLE:
+     63	018B  8A 1C					     MOV BL, [SI]	      ;Cadena almacenada en DS:DX
+     64	018D  80 FB 41					     CMP BL, 'A'
+     65	0190  72 23					     JB	NUMEROS
      66
-     67
-     68	0168  CB				     RET
-     69
-     70	0169					     NUMEROS:
-     71	0169  80 FB 34					     CMP BL, '4'
-     72	016C  72 01					     JB	NUMFINAL
-     73
-     74
-     75
-     76
-     77	016E  CB				     RET
+     67	0192  80 C3 06					     ADD BL, OFFSET_A
+     68	0195  2E: 88 1E	0154r				     MOV RES, BL
+     69	019A  2E: 80 2E	0154r 41			     SUB RES, 'A'
+     70	01A0  2E: 8A 36	0154r				     MOV DH, RES
+     71	01A5  2E: 88 36	0153r				     MOV OFFSET_C, DH
+     72	01AA						     RETNUMEROS:	      ;offest_c	= 4
+     73	01AA  EB 68 90					     JMP PRINT
+     74	01AD						     RETPRINT:
+     75	01AD  46					     INC SI
+     76	01AE  80 3C 24					     CMP BYTE PTR [SI],	'$'
+     77	01B1  75 D8					     JNE BUCLE
      78
-     79	016F					     NUMFINAL:
-     80	016F  CB				     RET
+     79	01B3  EB CE				     JMP RETCODIFICAR
+     80
      81
-     82	0170					     DECODIFICAR:
-     83	0170  CB				     RET
-     84
-     85	0171					     PRINT:
-     86	0171  A0 0126r					     MOV AL, OFFSET_C
-     87	0174  B4 00					     MOV AH, 0
-     88	0176  B7 06					     MOV BH, 6
-     89	0178  F6 F7					     DIV BH
-     90	017A  A2 012Ar					     MOV RESFIL, AL
-     91	017D  80 06 012Ar 31				     ADD RESFIL, '1'
-     92	0182  8A 36 012Ar				     MOV DH, RESFIL
-     93	0186  88 36 0128r				     MOV FIL, DH
+     82	01B5					     NUMEROS:
+     83	01B5  80 FB 34					     CMP BL, '4'
+     84	01B8  72 17					     JB	NUMFINAL
+     85
+     86	01BA  2E: 88 1E	0154r				     MOV RES, BL
+     87	01BF  2E: 80 2E	0154r 34			     SUB RES, '4'
+     88	01C5  2E: 8A 36	0154r				     MOV DH, RES
+     89	01CA  2E: 88 36	0153r				     MOV OFFSET_C, DH
+     90
+     91	01CF						     RETNUMFINAL:
+     92
+     93	01CF  EB D9				     JMP RETNUMEROS
      94
-     95	018A  B4 02					     MOV AH, 2
-     96	018C  8A 16 0128r				     MOV DL, FIL
-     97	0190  CD 21					     INT 21H
-     98
-     99	0192  A0 0126r					     MOV AL, OFFSET_C
-    100	0195  B4 00					     MOV AH, 0
-    101	0197  B7 06					     MOV BH, 6
-    102	0199  F6 F7					     DIV BH
-    103	019B  88 26 012Br				     MOV RESCOL, AH
-    104	019F  80 06 012Br 31				     ADD RESCOL, '1'
-    105	01A4  8A 36 012Br				     MOV DH, RESCOL
-    106	01A8  88 36 0129r				     MOV COL, DH
-    107
-    108	01AC  B4 02					     MOV AH, 2
-    109	01AE  8A 16 0129r				     MOV DL, COL
-    110	01B2  CD 21					     INT 21H
-    111
-    112	01B4  CB				     RET
-    113
-    114
-Turbo Assembler	 Version 2.0	    04/28/19 23:22:28	    Page 3
+     95
+     96	01D1					     NUMFINAL:
+     97	01D1  80 C3 20					     ADD BL, OFFSET_0
+     98	01D4  2E: 88 1E	0154r				     MOV RES, BL
+     99	01D9  2E: 80 2E	0154r 30			     SUB RES, '0'
+    100	01DF  2E: 8A 36	0154r				     MOV DH, RES
+    101	01E4  2E: 88 36	0153r				     MOV OFFSET_C, DH
+    102
+    103	01E9  EB E4				     JMP RETNUMFINAL
+    104
+    105
+    106	01EB					     DECODIFICAR:
+    107	01EB						     BUCLE2:
+    108	01EB  8A 1C					     MOV BL, [SI]
+    109	01ED  80 EB 30					     SUB BL, 48
+    110	01F0  32 E4					     XOR AH, AH
+    111	01F2  B0 06					     MOV AL, 6
+    112	01F4  F6 E3					     MUL BL						     ;En AL tengo el+
+    113				     resultado de 3 * 6	= 18
+    114	01F6  46					     INC SI
+Turbo Assembler	 Version 2.0	    04/30/19 18:11:47	    Page 3
 p4a.asm
 
 
 
-    115	01B5					     FINAL:
-    116	01B5  07 1F 5F 5E 5A 59	5B+		     POP ES DS DI SI DX	CX BX AX
-    117	      58
-    118	01BD  CF				     IRET
-    119	01BE				     RSI_57H ENDP
+    115	01F7  8A 1C					     MOV BL, [SI]
+    116	01F9  80 EB 30					     SUB BL, 48
+    117	01FC  02 D8					     ADD BL, AL
+    118	01FE  32 FF					     XOR BH, BH
+    119	0200  8B FB					     MOV DI, BX
     120
-    121
-    122	01BE				     MAIN:		     ;SE EJECUTA PRIMERO, MIRA LOS ARGUMENTOS Y	LLAMA A	LA RUTINA   +
-    123				     (POLIBIO) O AL INSTALADOR
-    124
-    125	01BE  BA 0100r				     MOV DX, OFFSET POLIBIO
-    126	01C1  B4 09				     MOV AH, 9
-    127	01C3  CD 21				     INT 21H
-    128	01C5  9C				     PUSHF
-    129	01C6  0E E8 FF65			     CALL RSI_57H
+    121	0202  B4 02					     MOV AH, 2H
+    122	0204  2E: 8A 95	012Fr				     MOV DL, DECOD[DI]
+    123	0209  CD 21					     INT 21H
+    124	020B  46					     INC SI
+    125
+    126	020C  80 3C 24					     CMP BYTE PTR [SI],	'$'
+    127	020F  75 DA					     JNE BUCLE2
+    128
+    129	0211  E9 FF74				     JMP RETDECODIFICAR
     130
     131
-    132	01CA  B8 4C00			     MOV AX,4C00H		     ; FIN DE PROGRAMA Y VUELTA	AL DOS
-    133	01CD  CD 21			     INT 21H
-    134
-    135
-    136	01CF				     INSTALADOR	PROC		     ;ESTO ES ESTANDAR PARA LAS	INTERRUPCIONES
-    137
-    138	01CF  B8 0000			     mov ax, 0
-    139	01D2  8E C0			     mov es, ax
-    140	01D4  B8 012Fr			     mov ax, OFFSET RSI_57H
-    141	01D7  8C CB			     mov bx, cs
-    142	01D9  FA			     cli
-    143	01DA  26: A3 0100		     mov es:[ 40h*4 ], ax
-    144	01DE  26: 89 1E	0102		     mov es:[ 40h*4+2 ], bx
-    145	01E3  FB			     sti
-    146	01E4  BA 01CFr			     mov dx, OFFSET INSTALADOR
-    147	01E7  CD 27			     int 27h ;	Acaba y	deja residente
-    148					     ;	PSP, variables y rutina	rsi.
-    149	01E9  C3			     RET
-    150	01EA				     INSTALADOR	ENDP
+    132	0214					     PRINT:
+    133	0214  2E: A0 0153r				     MOV AL, OFFSET_C
+    134	0218  B4 00					     MOV AH, 0
+    135	021A  B7 06					     MOV BH, 6
+    136	021C  F6 F7					     DIV BH
+    137	021E  2E: A2 0157r				     MOV RESFIL, AL
+    138	0222  2E: 80 06	0157r 30			     ADD RESFIL, '0'
+    139	0228  2E: 8A 36	0157r				     MOV DH, RESFIL
+    140	022D  2E: 88 36	0155r				     MOV FIL, DH
+    141
+    142	0232  2E: 88 26	0158r				     MOV RESCOL, AH
+    143	0237  2E: 80 06	0158r 30			     ADD RESCOL, '0'
+    144	023D  2E: 8A 36	0158r				     MOV DH, RESCOL
+    145	0242  2E: 88 36	0156r				     MOV COL, DH
+    146
+    147
+    148	0247  B4 02					     MOV AH, 2H
+    149	0249  2E: 8A 16	0155r				     MOV DL, FIL
+    150	024E  CD 21					     INT 21H
     151
-    152				     ; FIN DEL SEGMENTO	DE CODIGO
-    153	01EA			     CODE ENDS
-    154				     ; FIN DEL PROGRAMA	INDICANDO DONDE	COMIENZA LA EJECUCION
-    155				     END INICIO
-Turbo Assembler	 Version 2.0	    04/28/19 23:22:28	    Page 4
+    152	0250  B4 02					     MOV AH, 2H
+    153	0252  2E: 8A 16	0156r				     MOV DL, COL
+    154	0257  CD 21					     INT 21H
+    155
+    156	0259  B4 02					     MOV AH, 2H
+    157	025B  B2 20					     MOV DL, 32
+    158	025D  CD 21					     INT 21H
+    159
+    160	025F  E9 FF4B				     JMP RETPRINT
+    161
+    162
+    163	0262					     FINAL:
+    164	0262  07 1F 5F 5E 5A 59	5B+		     POP ES DS DI SI DX	CX BX AX
+    165	      58
+    166	026A  CF				     IRET
+    167	026B				     RSI_57H ENDP
+    168
+    169
+    170
+    171	026B				     INSTALADOR	PROC		     ;ESTO ES ESTANDAR PARA LAS	INTERRUPCIONES
+Turbo Assembler	 Version 2.0	    04/30/19 18:11:47	    Page 4
+p4a.asm
+
+
+
+    172	026B  B8 0000				     mov ax, 0
+    173	026E  8E C0				     mov es, ax
+    174	0270  B8 0172r				     mov ax, OFFSET RSI_57H
+    175	0273  8C CB				     mov bx, cs
+    176	0275  FA				     cli
+    177	0276  26: A3 0100			     mov es:[ 40h*4 ], ax
+    178	027A  26: 89 1E	0102			     mov es:[ 40h*4+2 ], bx
+    179	027F  FB				     sti
+    180	0280  BA 026Br				     mov dx, OFFSET INSTALADOR
+    181	0283  CD 27				     int 27h ;	Acaba y	deja residente
+    182						     ;	PSP, variables y rutina	rsi.
+    183	0285				     INSTALADOR	ENDP
+    184
+    185																    +
+    186				     ;***********************************************************************************************
+    187				     **************************;
+    188																    +
+    189				     ;***************************************************MAIN****************************************
+    190				     **************************;
+    191																    +
+    192				     ;***********************************************************************************************
+    193				     **************************;
+    194	0285				     MAIN:		     ;SE EJECUTA PRIMERO, MIRA LOS ARGUMENTOS Y	LLAMA A	LA RUTINA   +
+    195				     (POLIBIO) O AL INSTALADOR
+    196
+    197	0285  B4 09				     MOV AH, 9
+    198	0287  BA 0103r				     MOV DX, OFFSET POLIBIOTABLA
+    199	028A  CD 21				     INT 21H
+    200	028C  9C				     PUSHF
+    201	028D  BA 0159r				     MOV DX, OFFSET POLIBIO
+    202	0290  0E E8 FEDE			     CALL RSI_57H
+    203
+    204
+    205	0294  B8 4C00			     MOV AX,4C00H		     ; FIN DE PROGRAMA Y VUELTA	AL DOS
+    206	0297  CD 21			     INT 21H
+    207
+    208				     ; FIN DEL SEGMENTO	DE CODIGO
+    209	0299			     CODE ENDS
+    210				     ; FIN DEL PROGRAMA	INDICANDO DONDE	COMIENZA LA EJECUCION
+    211				     END INICIO
+Turbo Assembler	 Version 2.0	    04/30/19 18:11:47	    Page 5
 Symbol Table
 
 
@@ -176,34 +237,44 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "04/28/19"
+??DATE				  Text	 "04/30/19"
 ??FILENAME			  Text	 "p4a	  "
-??TIME				  Text	 "23:22:28"
+??TIME				  Text	 "18:11:47"
 ??VERSION			  Number 0200
 @CPU				  Text	 0101H
 @CURSEG				  Text	 CODE
 @FILENAME			  Text	 P4A
 @WORDSIZE			  Text	 2
-CODIFICAR			  Near	 CODE:0144
-COL				  Byte	 CODE:0129
-DECODIFICAR			  Near	 CODE:0170
-FIL				  Byte	 CODE:0128
-FINAL				  Near	 CODE:01B5
+BUCLE				  Near	 CODE:018B
+BUCLE2				  Near	 CODE:01EB
+CODIFICAR			  Near	 CODE:018B
+COL				  Byte	 CODE:0156
+DECOD				  Byte	 CODE:012F
+DECODIFICAR			  Near	 CODE:01EB
+FIL				  Byte	 CODE:0155
+FINAL				  Near	 CODE:0262
 INICIO				  Near	 CODE:0100
-INSTALADOR			  Near	 CODE:01CF
-MAIN				  Near	 CODE:01BE
-NUMEROS				  Near	 CODE:0169
-NUMFINAL			  Near	 CODE:016F
-OFFSET_A			  Byte	 CODE:0125
-OFFSET_C			  Byte	 CODE:0126
-POLIBIO				  Byte	 CODE:0100
-PRINT				  Near	 CODE:0171
-RES				  Byte	 CODE:0127
-RESCOL				  Byte	 CODE:012B
-RESFIL				  Byte	 CODE:012A
-RSI_57H				  Far	 CODE:012F
+INSTALADOR			  Near	 CODE:026B
+MAIN				  Near	 CODE:0285
+NUMEROS				  Near	 CODE:01B5
+NUMFINAL			  Near	 CODE:01D1
+OFFSET_0			  Number 0020
+OFFSET_A			  Number 0006
+OFFSET_C			  Byte	 CODE:0153
+POLIBIO				  Byte	 CODE:0159
+POLIBIOTABLA			  Byte	 CODE:0103
+PRINT				  Near	 CODE:0214
+RES				  Byte	 CODE:0154
+RESCOL				  Byte	 CODE:0158
+RESFIL				  Byte	 CODE:0157
+RETCODIFICAR			  Near	 CODE:0183
+RETDECODIFICAR			  Near	 CODE:0188
+RETNUMEROS			  Near	 CODE:01AA
+RETNUMFINAL			  Near	 CODE:01CF
+RETPRINT			  Near	 CODE:01AD
+RSI_57H				  Far	 CODE:0172
 
 Groups & Segments		  Bit Size Align  Combine Class
 
-CODE				  16  01EA Para	  none
+CODE				  16  0299 Para	  none
 
