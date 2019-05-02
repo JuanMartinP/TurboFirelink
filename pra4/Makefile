@@ -1,6 +1,6 @@
-all: p4.com
+all: p4.exe
 
-p4.com: p4a.obj
+p4.exe: p4a.obj
 	tlink /t p4a.obj
 
 p4a.obj: p4a.asm

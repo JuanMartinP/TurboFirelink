@@ -11,7 +11,15 @@ INICIO:
 	
     JMP MAIN
 
-	POLIBIOTABLA DB '4', '5', '6', '7', '8', '9', 10, 'A', 'B', 'C', 'D', 'E', 'F', 10, 'G', 'H', 'I', 'J', 'K', 'L', 10, 'M', 'N', 'O', 'P', 'Q', 'R', 10, 'S', 'T', 'U', 'V', 'W', 'X', 10, 'Y', 'Z', '0', '1', '2', '3', 10, 10, '$'
+	POLIBIOTABLA DB ' ', '|', '0', ' ', '1', ' ', '2', ' ', '3', ' ', '4', ' ', '5', 10
+				 DB '-', '|', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 10
+				 DB '0', '|', '4', ' ', '5', ' ', '6', ' ', '7', ' ', '8', ' ', '9', 10 
+				 DB '1', '|', 'A', ' ', 'B', ' ', 'C', ' ', 'D', ' ', 'E', ' ', 'F', 10
+				 DB	'2', '|', 'G', ' ', 'H', ' ', 'I', ' ', 'J', ' ', 'K', ' ', 'L', 10
+				 DB '3', '|', 'M',  ' ','N', ' ', 'O', ' ', 'P', ' ', 'Q', ' ', 'R', 10
+				 DB '4', '|', 'S', ' ', 'T', ' ', 'U', ' ', 'V', ' ', 'W', ' ', 'X', 10 
+				 DB '5', '|', 'Y', ' ', 'Z',  ' ','0', ' ', '1', ' ', '2', ' ', '3', 10, 10, '$'
+				 
 	DECOD DB '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3'
 	OFFSET_A EQU 6						;1 * 6 + 0  FILA * MAXFILA + COL
 	OFFSET_0 EQU 32						;5 * 6 + 2  FILA * MAXFILA + COL
@@ -21,19 +29,32 @@ INICIO:
 	COL DB 0
 	RESFIL DB 0
 	RESCOL DB 0
-	POLIBIO DB "333225221122320202025253$"
+	POLIBIODECOD DB "33322522112232545253053023$"
+	POLIBIOCOD DB "POLIBIO2019MJ$"
+	STRINGMENU DB "Pareja numero 7, Miguel Manzano y Juan Martin. Los parametros posibles son:", 10
+			   DB "Sin parametros para ver la informacion", 10
+			   DB "/I para instalar el driver", 10
+			   DB "/D para desinstalarlo", 10, '$'
+			   
+	ERRPARAMETROS DB "Los parametros introducidos son incorrectos. Los parametros posibles son:", 10
+				  DB "Sin parametros para ver la informacion", 10
+				  DB "/I para instalar el driver", 10
+				  DB "/D para desinstalarlo", 10, '$'
+	INSTALADO DB "El driver esta instalado$"
+	NOINSTALADO DB "El driver NO esta instalado$"
 	
 	RSI_57H PROC FAR				;Codifica y decodifica la cadena en DX 
 		
 		PUSH AX BX CX DX SI DI DS ES 
-		
 		MOV SI, DX
-		
-		MOV AH, 11H						;;Para codificar o decodificar 
+										;En la dirección 80h se guardan los parámetros de un .com
+		MOV AH, 10H						;;Para codificar o decodificar 
 		CMP AH, 10H						;; Para codificar	
 		JE CODIFICAR
 		RETCODIFICAR:
-	
+		
+		MOV DX, OFFSET POLIBIODECOD
+		MOV SI, DX
 		CMP AH, 11H						;; Para decodificar
 		JE DECODIFICAR
 		RETDECODIFICAR:
@@ -125,6 +146,9 @@ INICIO:
 		JMP RETDECODIFICAR
 	
 	
+		;                     *********************                     ;
+		;*********************Funcion para imprimir**********************;
+		;                     *********************                     ;
 		PRINT:
 			MOV AL, OFFSET_C				;Movemos el caracter decimal a AL
 			MOV AH, 0
@@ -169,8 +193,9 @@ INICIO:
 		mov ax, OFFSET RSI_57H
 		mov bx, cs
 		cli
-		mov es:[ 40h*4 ], ax
-		mov es:[ 40h*4+2 ], bx
+		mov es:[ 57h*4-2], 0ABBAH
+		mov es:[ 57h*4 ], ax
+		mov es:[ 57h*4+2 ], bx
 		sti
 		mov dx, OFFSET INSTALADOR
 		int 27h 						; Acaba y deja residente
@@ -178,22 +203,23 @@ INICIO:
 	INSTALADOR ENDP
 	
 	
-	desinstalar_40h PROC       			; Desinstala RSI de INT 40h
+	desinstalar_57h PROC       			; Desinstala RSI de INT 57h
 		mov cx, 0
 		mov ds, cx						; Segmento de vectores interrupción
-		mov es, ds:[ 40h*4+2 ]      	; Lee segmento de RSI
+		mov es, ds:[ 57h*4+2 ]      	; Lee segmento de RSI
 		mov bx, es:[ 2Ch ]  			; Lee segmento de entorno del PSP de RSI
 		mov ah, 49h 
 		int 21h							; Libera segmento de RSI (es)
 		mov es, bx
 		int 21h 						; Libera segmento de variables de entorno de RSI
-										; Pone a cero vector de interrupción 40h
+										; Pone a cero vector de interrupción 57h
 		cli
-		mov ds:[ 40h*4 ], cx 			; cx = 0
-		mov ds:[ 40h*4+2 ], cx
+		mov ds:[ 57h*4 ], cx 			; cx = 0
+		mov ds:[ 57h*4+2 ], cx
+		mov WORD PTR ds:[ 57h*4-2], 0000H
 		sti 
 		ret 
-	desinstalar_40h ENDP
+	desinstalar_57h ENDP
 	
 	
 	;*************************************************************************************************************************;
@@ -201,14 +227,77 @@ INICIO:
 	;*************************************************************************************************************************;
 	MAIN:			;SE EJECUTA PRIMERO, MIRA LOS ARGUMENTOS Y LLAMA A LA RUTINA (POLIBIO) O AL INSTALADOR
 	
-		MOV AH, 9
+		MOV SI, 80H
+		MOV BH, [SI]
+		
+		CMP BH, 0								;No hay parametros de entrada
+		JE MENU
+		
+		CMP BH, 3								;Hay 3 caracteres como parametros de entrada
+		JNE ERRENTRADA
+	
+		MOV BH, [SI+2]							;Comparamos el primer caracter de los parametros
+		CMP BH, "/"
+		JNE ERRENTRADA
+		
+		MOV BH, [SI+3]
+		CMP BH, "I"
+		JE INSTALAR
+	
+		CMP BH, "D"
+		JE DESINSTALAR
+		
+		JMP FIN
+		
+		MOV AH, 9								;Imprime la matriz de polibio personalizada de la pareja 7
 		MOV DX, OFFSET POLIBIOTABLA
 		INT 21H
 		PUSHF
-		MOV DX, OFFSET POLIBIO
+		MOV DX, OFFSET POLIBIOCOD
 		CALL RSI_57H
+		JMP FIN
+		
+		MENU:
+			MOV DX, OFFSET STRINGMENU			;Imprime la cadena de caracteres que muestra las opciones
+			MOV AH, 9
+			INT 21h
+			
+			MOV AX, 0
+			MOV ES, AX
+			CMP ES:[ 57h*4-2], 0ABBAH
+			JE MSJINST
+			JMP MSJNOINST
+			
+		JMP FIN
+		
+		ERRENTRADA:
+			MOV DX, OFFSET ERRPARAMETROS		;Imprime la cadena de caracteres que muestra el mensaje de error
+			MOV AH, 9
+			INT 21h
+		JMP FIN
+		
+		MSJINST:
+			MOV DX, OFFSET INSTALADO		;Imprime la cadena de caracteres que indica que el driver esta instalado
+			MOV AH, 9
+			INT 21h
+		JMP FIN
+				
+		MSJNOINST:
+			MOV DX, OFFSET NOINSTALADO		;Imprime la cadena de caracteres que indica que el driver NO esta instalado
+			MOV AH, 9
+			INT 21h
+		JMP FIN
+		
+		INSTALAR:
+			CALL INSTALADOR
+		JMP FIN
+		
+		DESINSTALAR:
+			CALL desinstalar_57h
+		JMP FIN
 		
 		
+		FIN:
 	MOV AX,4C00H			; FIN DE PROGRAMA Y VUELTA AL DOS
 	INT 21H
 	
