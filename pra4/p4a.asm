@@ -11,26 +11,6 @@ INICIO:
 	
     JMP MAIN
 
-	POLIBIOTABLA DB ' ', '|', '0', ' ', '1', ' ', '2', ' ', '3', ' ', '4', ' ', '5', 10
-				 DB '-', '|', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 10
-				 DB '0', '|', '4', ' ', '5', ' ', '6', ' ', '7', ' ', '8', ' ', '9', 10 
-				 DB '1', '|', 'A', ' ', 'B', ' ', 'C', ' ', 'D', ' ', 'E', ' ', 'F', 10
-				 DB	'2', '|', 'G', ' ', 'H', ' ', 'I', ' ', 'J', ' ', 'K', ' ', 'L', 10
-				 DB '3', '|', 'M',  ' ','N', ' ', 'O', ' ', 'P', ' ', 'Q', ' ', 'R', 10
-				 DB '4', '|', 'S', ' ', 'T', ' ', 'U', ' ', 'V', ' ', 'W', ' ', 'X', 10 
-				 DB '5', '|', 'Y', ' ', 'Z',  ' ','0', ' ', '1', ' ', '2', ' ', '3', 10, 10, '$'
-				 
-	DECOD DB '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3'
-	OFFSET_A EQU 6						;1 * 6 + 0  FILA * MAXFILA + COL
-	OFFSET_0 EQU 32						;5 * 6 + 2  FILA * MAXFILA + COL
-	OFFSET_C DB 0
-	RES DB 0
-	FIL DB 0 
-	COL DB 0
-	RESFIL DB 0
-	RESCOL DB 0
-	POLIBIODECOD DB "33322522112232545253053023$"
-	POLIBIOCOD DB "POLIBIO2019MJ$"
 	STRINGMENU DB "Pareja numero 7, Miguel Manzano y Juan Martin. Los parametros posibles son:", 10
 			   DB "Sin parametros para ver la informacion", 10
 			   DB "/I para instalar el driver", 10
@@ -43,40 +23,35 @@ INICIO:
 	INSTALADO DB "El driver esta instalado$"
 	NOINSTALADO DB "El driver NO esta instalado$"
 	
-	RSI_57H PROC FAR				;Codifica y decodifica la cadena en DX 
+	
+	RSI_57H PROC FAR					;Codifica y decodifica la cadena en DX 
+		 
+		MOV SI, DX						;Cogemos el offest de la cadena a codificar/decodificar
 		
-		PUSH AX BX CX DX SI DI DS ES 
-		MOV SI, DX
-										;En la dirección 80h se guardan los parámetros de un .com
-		MOV AH, 10H						;;Para codificar o decodificar 
-		CMP AH, 10H						;; Para codificar	
+		CMP AH, 10H						;Para codificar	
 		JE CODIFICAR
 		RETCODIFICAR:
 		
-		MOV DX, OFFSET POLIBIODECOD
-		MOV SI, DX
-		CMP AH, 11H						;; Para decodificar
+		CMP AH, 11H						;Para decodificar
 		JE DECODIFICAR
 		RETDECODIFICAR:
 		
 		JMP FINAL
 		
 		
-		;                     ************************                     ;
-		;*********************Funcion para decodificar**********************;
-		;                     ************************                     ;
+		;                     **********************                     ;
+		;*********************Funcion para codificar**********************;
+		;                     **********************                     ;
 		CODIFICAR:
 		
 			BUCLE:
 			MOV BL, [SI]             	;Cadena almacenada en DS:DX
-			CMP BL, 'A'					;Si su valos ascii es menos que A es que es un numero
+			CMP BL, 'A'					;Si su valor ascii es menos que A es que es un numero
 			JB NUMEROS
 
-			ADD BL, OFFSET_A			;Offset de A dentro de nuestra tabla de polibio
-			MOV RES, BL					
-			SUB RES, 'A'				;Le restamos el valor ascii de A para ver que letra es	
-			MOV DH, RES			
-			MOV OFFSET_C, DH			
+			ADD BL, 6					;Offset de A dentro de nuestra tabla de polibio				
+			SUB BL, 'A'					;Le restamos el valor ascii de A para ver que letra es	
+			MOV CH, BL			
 			RETNUMEROS:              
 			JMP PRINT					;Llamamos a la función para imprimir
 			RETPRINT:
@@ -91,13 +66,11 @@ INICIO:
 		;*********************Lo leido es un numero**********************;
 		;                     *********************                     ;  
 		NUMEROS:
-			CMP BL, '4'					;Comparamos el cacter leido con 4
+			CMP BL, '4'					;Comparamos el caracter leido con 4
 			JB NUMFINAL					;Si es menor está en el final de la tabla, si no está al principio
 			
-			MOV RES, BL			
-			SUB RES, '4'				;Calculamos su posicion en la tabla (4 es el primer num de la tabla)
-			MOV DH, RES			
-			MOV OFFSET_C, DH
+			SUB BL, '4'					;Calculamos su posicion en la tabla (4 es el primer num de la tabla)
+			MOV CH, BL
 			
 			RETNUMFINAL:	
 		
@@ -109,11 +82,9 @@ INICIO:
 		;*********************Numeros del final de la tabla de polibio**********************;
 		;                     ****************************************                     ;
 		NUMFINAL:
-			ADD BL, OFFSET_0			;Posicion del 0 en la tabla
-			MOV RES, BL			
-			SUB RES, '0'				;Para convertir de su valor ascii a decimal y operar
-			MOV DH, RES			
-			MOV OFFSET_C, DH
+			ADD BL, 32					;Posicion del 0 en la tabla
+			SUB BL, '0'					;Para convertir de su valor ascii a decimal y operar	
+			MOV CH, BL
 		
 		JMP RETNUMFINAL
 		
@@ -123,24 +94,23 @@ INICIO:
 		;                     ************************                     ;
 		DECODIFICAR:
 			BUCLE2:
-			MOV BL, [SI] 					;Contenido de la cadena a decodificar
-			SUB BL, 48						;Lo convertimos de valor ascii a decimal
+			MOV BL, [SI] 				;Contenido de la cadena a decodificar
+			SUB BL, 48					;Lo convertimos de valor ascii a decimal
 			XOR AH, AH
-			MOV AL, 6						;Filas totales
-			MUL BL							;En AL se queda la fila * filas totales
+			MOV AL, 6					;Filas totales
+			MUL BL						;En AL se queda la fila * filas totales
 			INC SI
-			MOV BL, [SI]					;Le sumamos el siguiente numero
-			SUB BL, 48						;Lo convertimos de valor ascii a decimal
-			ADD BL, AL						;fila * filstotales + columna
-			XOR BH, BH						
-			MOV DI, BX						;Su posicion en la tabla
+			MOV BL, [SI]				;Le sumamos el siguiente numero
+			SUB BL, 48					;Lo convertimos de valor ascii a decimal
+			ADD BL, AL					;fila * filstotales + columna
+			XOR BH, BH
 			
 			MOV AH, 2H						
-			MOV DL, DECOD[DI]				;Imprimimos el caracter decodificado
+			MOV DL, [DI+BX]			;Imprimimos el caracter decodificado
 			INT 21H
 			INC SI
 			
-			CMP BYTE PTR [SI], '$'			;Si no es el fin de la cadena salta al inicio del bucle
+			CMP BYTE PTR [SI], '$'		;Si no es el fin de la cadena salta al inicio del bucle
 			JNE BUCLE2
 			
 		JMP RETDECODIFICAR
@@ -150,38 +120,34 @@ INICIO:
 		;*********************Funcion para imprimir**********************;
 		;                     *********************                     ;
 		PRINT:
-			MOV AL, OFFSET_C				;Movemos el caracter decimal a AL
+			MOV AL, CH					;Movemos el caracter decimal a AL
 			MOV AH, 0
 			MOV BH, 6			
-			DIV BH							;Dividimos el caracter decimal entre el numFilas
-			MOV RESFIL, AL					;Cogemos el cociente (que es la fila)
-			ADD RESFIL, '0'					;Lo convertimos a valor ascii
-			MOV DH, RESFIL		
-			MOV FIL, DH						
+			DIV BH						;Dividimos el caracter decimal entre el numFilas
+			MOV CH, AL					;Cogemos el cociente (que es la fila)
+			ADD CH, '0'					;Lo convertimos a valor ascii				
 			
-			MOV RESCOL, AH					;Cogemos el resto (que es la columna)
-			ADD RESCOL, '0'					;Lo convertimos a valor ascii
-			MOV DH, RESCOL		
-			MOV COL, DH		
+			MOV CL, AH					;Cogemos el resto (que es la columna)
+			ADD CL, '0'					;Lo convertimos a valor ascii
 			
 			
 			MOV AH, 2H
-			MOV DL, FIL						;Imprimimos la fila
+			MOV DL, CH					;Imprimimos la fila
 			INT 21H
 				
 			MOV AH, 2H
-			MOV DL, COL						;Imprimimos la columna
+			MOV DL, CL					;Imprimimos la columna
 			INT 21H
 			
 			MOV AH, 2H
-			MOV DL, 32						;Imprimimos un espacio
+			MOV DL, 32					;Imprimimos un espacio
 			INT 21H
 				
 		JMP RETPRINT
 		
 		
 		FINAL:
-		POP ES DS DI SI DX CX BX AX
+
 		IRET
 	RSI_57H ENDP
 
@@ -214,9 +180,10 @@ INICIO:
 		int 21h 						; Libera segmento de variables de entorno de RSI
 										; Pone a cero vector de interrupción 57h
 		cli
+		mov ds:[ 57h*4-2], cx
 		mov ds:[ 57h*4 ], cx 			; cx = 0
 		mov ds:[ 57h*4+2 ], cx
-		mov WORD PTR ds:[ 57h*4-2], 0000H
+
 		sti 
 		ret 
 	desinstalar_57h ENDP
@@ -247,14 +214,6 @@ INICIO:
 		CMP BH, "D"
 		JE DESINSTALAR
 		
-		JMP FIN
-		
-		MOV AH, 9								;Imprime la matriz de polibio personalizada de la pareja 7
-		MOV DX, OFFSET POLIBIOTABLA
-		INT 21H
-		PUSHF
-		MOV DX, OFFSET POLIBIOCOD
-		CALL RSI_57H
 		JMP FIN
 		
 		MENU:
@@ -289,10 +248,18 @@ INICIO:
 		JMP FIN
 		
 		INSTALAR:
+			MOV AX, 0
+			MOV ES, AX
+			CMP ES:[ 57h*4-2], 0ABBAH		;Si encontramos la firma antes del driver no lo instalamos, puesto que ya lo esta
+			JE FIN
 			CALL INSTALADOR
 		JMP FIN
 		
 		DESINSTALAR:
+			MOV AX, 0
+			MOV ES, AX
+			CMP ES:[ 57h*4-2], 0ABBAH
+			JNE FIN
 			CALL desinstalar_57h
 		JMP FIN
 		
