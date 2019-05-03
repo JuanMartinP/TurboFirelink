@@ -5,15 +5,6 @@
 ; DEFINICION DEL SEGMENTO DE DATOS
 DATOS SEGMENT
 
-	POLIBIOTABLA2 DB ' ', '|', '0', ' ', '1', ' ', '2', ' ', '3', ' ', '4', ' ', '5', 10, 13
-				 DB '-', '|', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 10, 13
-				 DB '0', '|', '4', ' ', '5', ' ', '6', ' ', '7', ' ', '8', ' ', '9', 10, 13
-				 DB '1', '|', 'A', ' ', 'B', ' ', 'C', ' ', 'D', ' ', 'E', ' ', 'F', 10, 13
-				 DB	'2', '|', 'G', ' ', 'H', ' ', 'I', ' ', 'J', ' ', 'K', ' ', 'L', 10, 13
-				 DB '3', '|', 'M',  ' ','N', ' ', 'O', ' ', 'P', ' ', 'Q', ' ', 'R', 10, 13
-				 DB '4', '|', 'S', ' ', 'T', ' ', 'U', ' ', 'V', ' ', 'W', ' ', 'X', 10, 13
-				 DB '5', '|', 'Y', ' ', 'Z',  ' ','0', ' ', '1', ' ', '2', ' ', '3', 10, 10, 13, '$'
-
 		POLIBIOTABLA DB 10, 13
 					 DB " | 0 1 2 3 4 5", 10, 13
 					 DB "--------------", 10, 13
@@ -25,9 +16,12 @@ DATOS SEGMENT
 					 DB "5| Y Z 0 1 2 3", 10, 13, '$'
 
 	POLIBIODECOD DB "33322522112232545253053023$"
-	POLIBIOCOD DB "POLIBIO2019MJ$"
+	POLIBIOCOD DB "MIGUELJUANPOLIBIO2019$"
 	DECOD DB '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3'
-
+	MSJ1 DB "Se esta codificando la cadena ", '$'
+	MSJ2 DB "Se esta decodificando la cadena ", '$'
+	
+	
 DATOS ENDS
 ;**************************************************************************
 ; DEFINICION DEL SEGMENTO DE PILA
@@ -52,11 +46,54 @@ INICIO PROC
 	MOV AH, 9								;Imprime la matriz de polibio personalizada de la pareja 7
 	MOV DX, OFFSET POLIBIOTABLA
 	INT 21H
+	
+	MOV AH, 2H
+	MOV DL, 10			
+	INT 21H
 
+	MOV AH, 9								;Imprime un mensaje informativo
+	MOV DX, OFFSET MSJ1
+	INT 21H
+	
+	MOV AH, 9								
+	MOV DX, OFFSET POLIBIOCOD
+	INT 21H
+	
+	MOV AH, 2H
+	MOV DL, ':'			
+	INT 21H
+	
+	MOV AH, 2H
+	MOV DL, 10			
+	INT 21H
+	
 	MOV DX, OFFSET POLIBIOCOD
 	MOV AH, 10H								;Codificar
 	INT 57H
 
+	MOV AH, 2H
+	MOV DL, 10			
+	INT 21H
+	MOV AH, 2H
+	MOV DL, 10			
+	INT 21H
+	
+	MOV AH, 9								;Imprime un mensaje informativo
+	MOV DX, OFFSET MSJ2
+	INT 21H
+
+	MOV AH, 9								
+	MOV DX, OFFSET POLIBIODECOD
+	INT 21H
+	
+	MOV AH, 2H
+	MOV DL, ':'			
+	INT 21H
+	
+	MOV AH, 2H
+	MOV DL, 10			
+	INT 21H
+	
 	MOV AH, 11H								;Decodificar
 	MOV DX, OFFSET POLIBIODECOD
 	MOV DI, OFFSET DECOD
